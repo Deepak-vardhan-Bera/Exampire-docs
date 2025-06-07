@@ -1,0 +1,131 @@
+{
+	"info": {
+		"_postman_id": "dd25d4e5-37cb-426a-be12-9dcea2f17269",
+		"name": "Exampire",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37277531",
+		"_collection_link": "https://hackathon-team-6802.postman.co/workspace/Exampire~c9875a4a-8128-4d46-95ac-8ffa13806b4b/collection/37277531-dd25d4e5-37cb-426a-be12-9dcea2f17269?action=share&source=collection_link&creator=37277531"
+	},
+	"item": [
+		{
+			"name": "SaveExam",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"AP EAMCET\",\r\n  \"description\": \"Engineering entrance exam for Andhra Pradesh\",\r\n  \"eligibility\": \"10+2 pass with Maths, Physics, Chemistry\",\r\n  \"logo\": \"https://res.cloudinary.com/dyejccvoz/image/upload/v1749323337/exampire/exam-logos/2025-06-07-logo.jpg\",\r\n  \"years\": [2023, 2024, 2025],\r\n  \"streams\": [\"Engineering\", \"Agriculture\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseURl}}/exams",
+					"host": [
+						"{{BaseURl}}"
+					],
+					"path": [
+						"exams"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UploadExamLogo",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "logo",
+							"type": "file",
+							"src": "postman-cloud:///1f043d2d-3aab-4aa0-b7dd-408feab19e2e"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BaseURl}}/upload/logo",
+					"host": [
+						"{{BaseURl}}"
+					],
+					"path": [
+						"upload",
+						"logo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UploadPaper",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "paper",
+							"type": "file",
+							"src": "postman-cloud:///1f043d3a-d056-4de0-bac4-707339a4223b"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BaseURl}}/upload/paper",
+					"host": [
+						"{{BaseURl}}"
+					],
+					"path": [
+						"upload",
+						"paper"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SavePaper",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"examId\": \"68448eb25012685dccf7a011\",\r\n  \"examName\": \"AP EAMCET\",\r\n  \"stream\": \"Engineering\",\r\n  \"year\": 2025,\r\n  \"session\": 1,\r\n  \"day\": \"July 8\",\r\n  \"shift\": 2,\r\n  \"subject\": \"Mathematics\",\r\n  \"set\": \"A\",\r\n  \"paperTitle\": \"July 8 Shift 2 AP EAMCET 2025 Mathematics Set A\",\r\n  \"difficulty\": \"Medium\",\r\n  \"cloudinaryUrl\":\"https://res.cloudinary.com/dyejccvoz/image/upload/v1749323695/exampire/exam-papers/2025-06-07-paper.pdf\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseURl}}/papers",
+					"host": [
+						"{{BaseURl}}"
+					],
+					"path": [
+						"papers"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
