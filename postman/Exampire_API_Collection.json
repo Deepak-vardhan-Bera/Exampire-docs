@@ -1,0 +1,3124 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Exampire API Collection",
+		"description": "Complete API collection for Exampire - Exam Management System Backend. Uses Bearer token authentication for mobile-optimized API access.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					"// Check if JWT token is available for authenticated requests",
+					"const jwtToken = pm.environment.get('jwt_token');",
+					"const currentRequest = pm.request.url.path.join('/');",
+					"",
+					"// List of endpoints that require authentication",
+					"const protectedEndpoints = [",
+					"    'checkauth', 'logout', 'profile', 'change-password', 'delete-account',",
+					"    'collections', 'bookmarks', 'analytics', 'notifications', 'upload'",
+					"];",
+					"",
+					"const requiresAuth = protectedEndpoints.some(endpoint => currentRequest.includes(endpoint));",
+					"",
+					"if (requiresAuth && !jwtToken) {",
+					"    console.warn('⚠️  This request requires authentication. Please login first to get a JWT token.');",
+					"} else if (jwtToken) {",
+					"    console.log('✅ JWT Token found - Request will be authenticated');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "User Signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.success && responseJson.token) {",
+									"        // Store JWT token for Bearer authentication",
+									"        pm.environment.set('jwt_token', responseJson.token);",
+									"        console.log('JWT Token stored successfully after signup');",
+									"    }",
+									"    if (responseJson.user) {",
+									"        pm.environment.set('user_id', responseJson.user._id);",
+									"        pm.environment.set('user_role', responseJson.user.role);",
+									"        console.log('User info stored:', responseJson.user.name, responseJson.user.role);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"name\": \"{{test_name}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": \"user\",\n    \"highestGraduation\": \"Bachelor's Degree\",\n    \"targetExams\": \"JEE Main, JEE Advanced\",\n    \"stream\": \"Engineering\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.success && responseJson.token) {",
+									"        // Store JWT token for Bearer authentication",
+									"        pm.environment.set('jwt_token', responseJson.token);",
+									"        console.log('JWT Token stored successfully');",
+									"    }",
+									"    if (responseJson.user) {",
+									"        pm.environment.set('user_id', responseJson.user._id);",
+									"        pm.environment.set('user_role', responseJson.user.role);",
+									"        console.log('User info stored:', responseJson.user.name, responseJson.user.role);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"{{verification_code}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/verifyemail",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verifyemail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Auth Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/checkauth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"checkauth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{test_email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"{{new_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/reset-password/{{reset_token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password",
+								"{{reset_token}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    // Clear stored authentication data",
+									"    pm.environment.unset('jwt_token');",
+									"    pm.environment.unset('user_id');",
+									"    pm.environment.unset('user_role');",
+									"    console.log('Authentication data cleared successfully');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bearer Token Testing",
+			"description": "Requests specifically for testing Bearer token authentication flow",
+			"item": [
+				{
+					"name": "Quick Login & Token Setup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login successful', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test('Token received and stored', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('token');",
+									"    pm.expect(responseJson.token).to.be.a('string');",
+									"    pm.expect(responseJson.token.length).to.be.greaterThan(0);",
+									"    ",
+									"    // Store token",
+									"    pm.environment.set('jwt_token', responseJson.token);",
+									"    console.log('✅ JWT Token stored for Bearer authentication');",
+									"});",
+									"",
+									"pm.test('User data received', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('user');",
+									"    pm.expect(responseJson.user).to.have.property('_id');",
+									"    pm.expect(responseJson.user).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Test Bearer Token Validation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Bearer token authentication works', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test('User authenticated successfully', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('success', true);",
+									"    pm.expect(responseJson).to.have.property('user');",
+									"});",
+									"",
+									"pm.test('Request header contains Bearer token', function () {",
+									"    const authHeader = pm.request.headers.get('Authorization');",
+									"    pm.expect(authHeader).to.include('Bearer');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/checkauth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"checkauth"
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Token & Test Unauthorized",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Clear token to test unauthorized access",
+									"pm.environment.unset('jwt_token');",
+									"console.log('🔒 Token cleared - testing unauthorized access');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Unauthorized access blocked', function () {",
+									"    pm.expect(pm.response.code).to.equal(401);",
+									"});",
+									"",
+									"pm.test('Error message received', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/checkauth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"checkauth"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Exams Management",
+			"item": [
+				{
+					"name": "Create Exam",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.exam) {",
+									"        pm.environment.set('exam_id', responseJson.exam._id);",
+									"        pm.environment.set('exam_name', responseJson.exam.name);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"JEE Main 2025\",\n    \"description\": \"Joint Entrance Examination Main for Engineering Admissions\",\n    \"eligibility\": \"12th pass with Physics, Chemistry and Mathematics\",\n    \"logo\": \"{{exam_logo_url}}\",\n    \"years\": [2020, 2021, 2022, 2023, 2024, 2025],\n    \"streams\": [\"Engineering\", \"Architecture\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/exams",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Exams",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams?page=1&limit=10&search=jee&stream=Engineering&year=2024&sortBy=name&sortOrder=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "jee"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Streams",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/streams",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"streams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Years",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/years",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"years"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exams by Stream",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/stream/Engineering",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"stream",
+								"Engineering"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exams by Year",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/year/2024",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"year",
+								"2024"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exams by Stream and Year",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/stats/streams-years/Engineering/2024",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"stats",
+								"streams-years",
+								"Engineering",
+								"2024"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exam by Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/name/JEE%20Main",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"name",
+								"JEE Main"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exam by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/exams/{{exam_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"{{exam_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exam",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"JEE Main 2025 Updated\",\n    \"description\": \"Updated description\",\n    \"eligibility\": \"Updated eligibility criteria\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/exams/{{exam_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"{{exam_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exam Streams",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"streams\": [\"Engineering\", \"Architecture\", \"Medical\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/exams/{{exam_id}}/streams",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"{{exam_id}}",
+								"streams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exam Years",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"years\": [2020, 2021, 2022, 2023, 2024, 2025]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/exams/{{exam_id}}/years",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"exams",
+								"{{exam_id}}",
+								"years"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Papers Management",
+			"item": [
+				{
+					"name": "Upload Paper Metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.paper) {",
+									"        pm.environment.set('paper_id', responseJson.paper._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"examId\": \"{{exam_id}}\",\n    \"examName\": \"JEE Main\",\n    \"stream\": \"Engineering\",\n    \"year\": 2024,\n    \"session\": 1,\n    \"day\": \"January 24\",\n    \"shift\": 1,\n    \"subject\": \"Physics, Chemistry, Mathematics\",\n    \"set\": \"A\",\n    \"paperTitle\": \"JEE Main 2024 January 24 Shift 1\",\n    \"cloudinaryUrl\": \"{{paper_url}}\",\n    \"difficulty\": \"Medium\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/papers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Papers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers?page=1&limit=10&search=jee&examName=JEE Main&stream=Engineering&year=2024&session=1&subject=Physics&difficulty=Medium&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "jee"
+								},
+								{
+									"key": "examName",
+									"value": "JEE Main"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "session",
+									"value": "1"
+								},
+								{
+									"key": "subject",
+									"value": "Physics"
+								},
+								{
+									"key": "difficulty",
+									"value": "Medium"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Most Viewed Papers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/most-viewed?page=1&limit=10&examName=JEE&year=2024&stream=Engineering",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"most-viewed"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Trending Papers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/trending?period=7d&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"trending"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "7d"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Papers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/search?q=jee&examName=JEE&year=2024&sortBy=relevance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "jee"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "sortBy",
+									"value": "relevance"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Exam Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/exam/JEE%20Main?page=1&limit=10&year=2024&stream=Engineering&subject=Physics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"exam",
+								"JEE Main"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								},
+								{
+									"key": "subject",
+									"value": "Physics"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Year",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/year/2024?page=1&limit=10&examName=JEE&stream=Engineering&subject=Physics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"year",
+								"2024"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								},
+								{
+									"key": "subject",
+									"value": "Physics"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Stream",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/stream/Engineering?page=1&limit=10&examName=JEE&year=2024&subject=Physics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"stream",
+								"Engineering"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "subject",
+									"value": "Physics"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Exam and Year",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/exam-year/JEE%20Main/2024?page=1&limit=10&stream=Engineering&subject=Physics&session=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"exam-year",
+								"JEE Main",
+								"2024"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								},
+								{
+									"key": "subject",
+									"value": "Physics"
+								},
+								{
+									"key": "session",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/date/July%208?page=1&limit=10&examName=JEE&year=2024&stream=Engineering",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"date",
+								"July 8"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Papers by Subject",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/subject/Physics?page=1&limit=10&examName=JEE&year=2024&stream=Engineering",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"subject",
+								"Physics"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								},
+								{
+									"key": "stream",
+									"value": "Engineering"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Saved Papers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/papers/saved?page=1&limit=20&examName=JEE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"saved"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "examName",
+									"value": "JEE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Related Papers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/related?limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"related"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Paper by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Paper",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"paperTitle\": \"Updated Paper Title\",\n    \"difficulty\": \"Hard\",\n    \"subject\": \"Physics, Chemistry, Mathematics\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Paper Metadata",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"difficulty\": \"Hard\",\n    \"metadata.favorites\": 100\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/metadata",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Paper Favorite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Paper",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rating\": 4.5,\n    \"comment\": \"Great paper for practice\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/rate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"rate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log Paper View",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/view",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"view"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Increment Paper Favorites",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decrement Paper Favorites",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/papers/{{paper_id}}/unfavorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"papers",
+								"{{paper_id}}",
+								"unfavorite"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Collections Management",
+			"item": [
+				{
+					"name": "Get Public Collections",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/collections/public?page=1&limit=20&search=physics&sortBy=metadata.views&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"public"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "search",
+									"value": "physics"
+								},
+								{
+									"key": "sortBy",
+									"value": "metadata.views"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Collections",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections?page=1&limit=20&search=&sortBy=updatedAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "sortBy",
+									"value": "updatedAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Collection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.collection) {",
+									"        pm.environment.set('collection_id', responseJson.collection._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"JEE Physics Papers\",\n    \"description\": \"Collection of JEE Main Physics papers for practice\",\n    \"coverImage\": \"https://res.cloudinary.com/example/image/upload/v1234567890/collection-cover.jpg\",\n    \"isPublic\": false,\n    \"tags\": [\"physics\", \"jee\", \"practice\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/collections",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Collection by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Collection",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Collection Name\",\n    \"description\": \"Updated description\",\n    \"isPublic\": true,\n    \"tags\": [\"physics\", \"jee\", \"practice\", \"updated\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Collection",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Paper to Collection",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}/papers/{{paper_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}",
+								"papers",
+								"{{paper_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Paper from Collection",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}/papers/{{paper_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}",
+								"papers",
+								"{{paper_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Collection Favorite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/collections/{{collection_id}}/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"collections",
+								"{{collection_id}}",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications Management",
+			"item": [
+				{
+					"name": "Get User Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications?page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Exam Available\",\n    \"message\": \"JEE Advanced 2024 paper is now available for practice\",\n    \"type\": \"exam_added\",\n    \"priority\": \"high\",\n    \"metadata\": {\n        \"examId\": \"{{exam_id}}\",\n        \"subject\": \"mathematics\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/notifications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications/count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications/{{notification_id}}/read",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"{{notification_id}}",
+								"read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark All as Read",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications/read-all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"read-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notification",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications/{{notification_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"{{notification_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Analytics & Progress",
+			"item": [
+				{
+					"name": "Get Dashboard Analytics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Activity",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/activity?startDate=2024-01-01&endDate=2024-12-31&granularity=daily",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"activity"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								},
+								{
+									"key": "granularity",
+									"value": "daily"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log Activity",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"view_paper\",\n    \"resourceId\": \"{{paper_id}}\",\n    \"resourceType\": \"paper\",\n    \"metadata\": {\n        \"timeSpent\": 300,\n        \"pageViewed\": 5\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/analytics/activity",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"activity"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Performance Analytics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/performance?subject=mathematics&examType=jee&timeframe=6months",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"performance"
+							],
+							"query": [
+								{
+									"key": "subject",
+									"value": "mathematics"
+								},
+								{
+									"key": "examType",
+									"value": "jee"
+								},
+								{
+									"key": "timeframe",
+									"value": "6months"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Study Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/progress",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"progress"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bookmarks Management",
+			"item": [
+				{
+					"name": "Get User Bookmarks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks?page=1&limit=20&paperId={{paper_id}}&search=formula&tags=important,physics&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "paperId",
+									"value": "{{paper_id}}"
+								},
+								{
+									"key": "search",
+									"value": "formula"
+								},
+								{
+									"key": "tags",
+									"value": "important,physics"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Bookmark",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.bookmark) {",
+									"        pm.environment.set('bookmark_id', responseJson.bookmark._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"paperId\": \"{{paper_id}}\",\n    \"pageNumber\": 5,\n    \"note\": \"Important formulas on this page\",\n    \"highlights\": [\n        {\n            \"text\": \"E=mc²\",\n            \"color\": \"#ffeb3b\",\n            \"coordinates\": {\n                \"x\": 100,\n                \"y\": 200,\n                \"width\": 50,\n                \"height\": 20\n            }\n        }\n    ],\n    \"tags\": [\"formula\", \"important\", \"physics\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bookmarks by Paper",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/paper/{{paper_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"paper",
+								"{{paper_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bookmark by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/{{bookmark_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"{{bookmark_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Bookmark",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"note\": \"Updated note with additional information\",\n    \"tags\": [\"formula\", \"important\", \"physics\", \"updated\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/{{bookmark_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"{{bookmark_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Bookmark",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/{{bookmark_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"{{bookmark_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Highlight to Bookmark",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.bookmark && responseJson.bookmark.highlights && responseJson.bookmark.highlights.length > 0) {",
+									"        const highlights = responseJson.bookmark.highlights;",
+									"        const lastHighlight = highlights[highlights.length - 1];",
+									"        pm.environment.set('highlight_id', lastHighlight._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"F = ma\",\n    \"color\": \"#ff9800\",\n    \"coordinates\": {\n        \"x\": 150,\n        \"y\": 300,\n        \"width\": 60,\n        \"height\": 25\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/{{bookmark_id}}/highlights",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"{{bookmark_id}}",
+								"highlights"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Highlight from Bookmark",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/bookmarks/{{bookmark_id}}/highlights/{{highlight_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"{{bookmark_id}}",
+								"highlights",
+								"{{highlight_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Analytics & Progress",
+			"item": [
+				{
+					"name": "Get User Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Study Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"timeSpent\": 30,\n    \"paperId\": \"{{paper_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/analytics/study-session",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"study-session"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get User Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/notifications?page=1&limit=20&type=new_papers&isRead=false&priority=high&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "type",
+									"value": "new_papers"
+								},
+								{
+									"key": "isRead",
+									"value": "false"
+								},
+								{
+									"key": "priority",
+									"value": "high"
+								},
+								{
+									"key": "category",
+									"value": "general",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Notification (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.notification) {",
+									"        pm.environment.set('notification_id', responseJson.notification._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"title\": \"New JEE Papers Available\",\n    \"message\": \"5 new JEE Main 2024 papers have been added to your target exams\",\n    \"type\": \"new_papers\",\n    \"priority\": \"medium\",\n    \"category\": \"exam_updates\",\n    \"data\": {\n        \"examName\": \"JEE Main\",\n        \"paperCount\": 5,\n        \"year\": 2024\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/notifications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Upload Services",
+			"item": [
+				{
+					"name": "Upload Exam Logo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "logo",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/upload/logo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"logo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Paper PDF",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.fileUrl) {",
+									"        pm.environment.set('uploaded_file_url', responseJson.fileUrl);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "type",
+									"value": "paper",
+									"type": "text"
+								},
+								{
+									"key": "metadata",
+									"value": "{\"title\":\"Sample Paper\",\"subject\":\"mathematics\",\"year\":\"2024\"}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/upload/paper",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"paper"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Multiple Files",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.files && responseJson.files.length > 0) {",
+									"        pm.environment.set('uploaded_files', JSON.stringify(responseJson.files));",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "type",
+									"value": "exam_materials",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/upload/multiple",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"multiple"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Image",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.imageUrl) {",
+									"        pm.environment.set('uploaded_image_url', responseJson.imageUrl);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "category",
+									"value": "profile",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/upload/image",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"image"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Uploaded File",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/upload/delete?fileUrl={{uploaded_file_url}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "fileUrl",
+									"value": "{{uploaded_file_url}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "exam_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "paper_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "collection_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bookmark_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "highlight_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "notification_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "uploaded_file_url",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "uploaded_image_url",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
