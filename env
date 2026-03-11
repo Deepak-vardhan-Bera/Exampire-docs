@@ -1,6 +1,0 @@
-MONGO_URI=mongodb+srv://ExampireApp:exampire@exampire.kcuyl2v.mongodb.net/Exampire?retryWrites=true&w=majority&appName=Exampire
-CLOUDINARY_CLOUD_NAME=dyejccvoz
-CLOUDINARY_API_KEY=674141913431312
-CLOUDINARY_API_SECRET=416cr6zjmQBxTBIRpN-yISq4tdY
-PORT=9000
-JWT_SECRET_KEY=ExampireSecretKey
